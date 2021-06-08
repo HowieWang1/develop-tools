@@ -14,6 +14,7 @@ import os
 import logging
 import re
 import socket
+import tkinter as tk
 
 import ctp.utils.common_devices_functions as comm_dev_funs
 import ctp.common.ctperrors as ctper
@@ -48,15 +49,18 @@ class find_check_devcie():
             error_msg = "no encl device detected"
             raise ctpex.CTPException(ctper.INVALID_INPUT, error_msg)
 
-        self.attach_expander_disk = comm_dev_funs.get_attached_expander_and_disk(self.encl_devs)['disk'] 
+        self.host_port_info = comm_dev_funs.get_attached_expander_and_disk(self.encl_devs)
+        self.attach_expander_disk = self.host_port_info['disk']
         # return value: {'expander':[], 'disk':[('/dev/sdal', '/dev/sg1'),...]}
     
     def run(self):
         disk_mapping_result = self.update_sas_dev()
-        log.info("{}".format('#'*10))
-        log.info("the mapping relationship is {}".format(disk_mapping_result))
-        print(disk_mapping_result)
-        log.info("{}".format('#'*10))
+        #print(disk_mapping_result)
+        return disk_mapping_result
+        #log.info("{}".format('#'*10))
+        #log.info("the mapping relationship is {}".format(disk_mapping_result))
+        #print(disk_mapping_result)
+        #log.info("{}".format('#'*10))
 
 
         sorted_same_wwn_disk = self.sort_devices_by_wwn()
@@ -73,7 +77,7 @@ class find_check_devcie():
             # then, make sure each drive can be available.
 
         disk_expander_wwn = {}
-        for dev_component in self.attach_expander_disk:              # for each device /dev/sg
+        for dev_component in self.attach_expander_disk:
             try:
                 cmd = 'sudo sg_inq {}'.format(dev_component[-1])
                 sg_inq_info, err = execcmd([cmd], timeout=30, shell=True)
@@ -150,10 +154,10 @@ class find_check_devcie():
             if 'master' in access_mode.send_cmd("getboardid", _dev, bus='', pass_through='')[0]:
                 master_dev = _dev
         gem_cli = GemCli(master_dev, access_mode=access_mode, CLI='', bus='', pass_through='')
-        for num in range(106):    # for now, just focus on Cobra+
+        for num in range(106):                                                        # for now, just focus on Cobra+
             recv_data = gem_cli.send_cmd("getdrivestatus {}".format(num))[0]
             if "invalid" in recv_data.lower():
-                break                               # no enough drives
+                break                                                                 # no enough drives
             recv_data = recv_data.splitlines()
             for info_line in recv_data:
                 if info_line == '':
@@ -168,16 +172,109 @@ class find_check_devcie():
         return self.disk_mapping_index
         # return value: {'['/dev/sg*', '/dev/sg*']':[num]}, usually, the first one would be connected to ctrlA,
         #                                                          the second one would be connected to ctrlB.
+
+
+    def print_drives_info(self, chassis_type, input_info):
+        if chassis_type.lower() == '4u106':
+            #########################
+            # 4U106 chassis
+            #########################
+
+            # exchange the key and value
+            output_info = {}
+            for key, value in input_info.items():
+                output_info[value] = key
     
-    #def check_PHY_counter(self):
-        # in this function, will use fio command to write/read some data to the devices, then check the PHY_counter.
+            print("-"*232)
+            for row in range(14):                           # 96HDD baseplane
+                for col in range(8):
+                    print("|", end="")
+                    if row <= 11:
+                        output_value = output_info.get((95 - row) - col*12, '')
+                    else:
+                        output_value = output_info.get((111 - row + 12) - col*2, '')
+                    if output_value:
+                        print(eval(output_value), end="")
+                        print(" " * (28 - len(output_value)), end="")
+                    else:
+                        print(' '*28, end="")
+                print("|")
+ 
+        elif chassis_type.lower() == '2u12':
+            #########################
+            # 2U12 chassis
+            #########################
+            output_info = {}
+            for key, value in input_info.items():
+                output_info[value] = key
+            print("-"*175)
         
+            for row in range(2):
+                for col in range(6):
+                    print("|", end='')
+                    output_value = output_info.get(6 - 6*row + col, '')
+                    if output_value:
+                        print(eval(output_value), end='')
+                        print(" " * (28 - len(output_value)), end='')
+                    else:
+                        print(' '*28, end='')
+                print("|", end='')
+                print("\n")
+        
+        elif chassis_type.lower() == '2u24':
+            #########################
+            # 2U24 chassis
+            #########################
+            output_info = {}
+            for key, value in input_info.items():
+                output_info[value] = key
+    
+            print("-"*50)
+            for row in range(4):
+                for col in range(6):
+                    print("|", end="")
+                    output_value = output_info.get(6*row + col, '')
+                    if output_value:
+                        print(eval(output_value), end="")
+                        print(" " * (28 - len(output_value)), end="")
+                    else:
+                        print(' '*28, end="")
+                print("|")
+    
+        # print the info line by line
+        for key, value in output_info.items():
+            print(f"Drive Slot {key}: {value}")
+
+    def get_device_host_port(self):
+        # get the host, port, expander num
+        for dev_name, dev_num in self.host_port_info.iteams():
+            if self.host_port_info[dev_name]:
+                
+            cmd = f"ll /sys/class/scsi_generic/{self.host_port_info[dev_name][-1]}"
+            host_port_info = execcmd()
+        
+        
+        print('')
 
 
 
 def main():
     func = find_check_devcie()
-    func.run()
+    result = func.run()
+    for _dev in func.encl_devs:
+        if 'master' in access_mode.send_cmd("getboardid", _dev, bus='', pass_through='')[0]:
+            master_dev = _dev
+    gem_cli = GemCli(master_dev, access_mode=access_mode, CLI='', bus='', pass_through='')
+    recv_data = gem_cli.send_cmd("getdrivebaycount")[0]
+    drive_bay_count = int(recv_data.split(' ')[1])
+    if drive_bay_count == 106:
+        func.print_drives_info('4U106', result)
+    elif drive_bay_count == 12:
+        func.print_drives_info('2U12', result)
+    elif drive_bay_count == 24:
+        func.print_drives_info('2U24', result)
+
+    
 
 
 

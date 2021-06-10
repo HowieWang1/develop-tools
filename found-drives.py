@@ -247,14 +247,90 @@ class find_check_devcie():
 
     def get_device_host_port(self):
         # get the host, port, expander num
+        # initial the dicts
+        address_dict = dict()
+        expander_dict = dict()
+        drive_dict = dict()
+        encl_dict = dict()
+        
         for dev_name, dev_num in self.host_port_info.iteams():
-            if self.host_port_info[dev_name]:
+            if dev_name == 'expander' and self.host_port_info[dev_name] and isinstance(self.host_port_info[dev_name], list):
+                # get the info of expander
+                for dev_exp in self.host_port_info[dev_name[4:]]:
+                    file_path = f"/sys/class/scsi_generic/{dev_exp}"
+                    recv_info = os.readlink(file_path)
+                    re_host_port_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    re_end_device_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    if re_host_port_info.group(0):
+                        tmp_data = re_host_port_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "host" in i:
+                                expander_dict[dev_exp].update({"host":i[3:]}
+                            elif "port" in i:
+                                expander_dict[dev_exp].update({"port":i[4:]} # skip "-"
+                            elif "expander" in i:
+                                expander_dict[dev_exp].update({"expander":i[4:]}
+                    if re_end_device_info.group(0):
+                        tmp_data = re_end_device_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "end_device" in i:
+                                expander_dict[dev_exp].update({"end_device":i[10:]}
+            if dev_name == 'disk' and self.host_port_info[dev_name] and isinstance(self.host_port_info[dev_name], list):
+                # get the info of disks
+                for dev_exp in self.host_port_info[dev_name]:
+                    file_path = f"/sys/class/scsi_generic/{dev_exp[1][4:]}"
+                    recv_info = os.readlink(file_path)
+                    re_host_port_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    re_end_device_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    if re_host_port_info.group(0):
+                        tmp_data = re_host_port_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "host" in i:
+                                drive_dict[dev_exp].update({"host":i[3:]}
+                            elif "port" in i:
+                                drive_dict[dev_exp].update({"port":i[4:]} # skip "-"
+                            elif "expander" in i:
+                                drive_dict[dev_exp].update({"expander":i[4:]}
+                    if re_end_device_info.group(0):
+                        tmp_data = re_end_device_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "end_device" in i:
+                                drive_dict[dev_exp].update({"end_device":i[10:]}
+            if self.encl_devs:
+                # get the info of ctrls
+                for encl in self.encl_devs:
+                    file_path = f"/sys/class/scsi_generic/{dev_exp[4:]}"
+                    recv_info = os.readlink(file_path)
+                    re_host_port_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    re_end_device_info = re.search(r"/host\w+/port-\w+:\w+/expander-\w+:\w+", recv_info)
+                    if re_host_port_info.group(0):
+                        tmp_data = re_host_port_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "host" in i:
+                                encl_dict[dev_exp].update({"host":i[3:]}
+                            elif "port" in i:
+                                encl_dict[dev_exp].update({"port":i[4:]} # skip "-"
+                            elif "expander" in i:
+                                encl_dict[dev_exp].update({"expander":i[4:]}
+                    if re_end_device_info.group(0):
+                        tmp_data = re_end_device_info.group(0)
+                        tmp_data.split(r"/")
+                        for i in tmp_data:
+                            if "end_device" in i:
+                                encl_dict[dev_exp].update({"end_device":i[10:]}
                 
-            cmd = f"ll /sys/class/scsi_generic/{self.host_port_info[dev_name][-1]}"
-            host_port_info = execcmd()
-        
-        
-        print('')
+        if expander_dict:
+            address_dict.update(expander_dict)
+        if drive_dict:
+            address_dict.update(drive_dict)
+        if encl_dict:
+            address_dict.update(encl_dict)
+        return address_dict
 
 
 

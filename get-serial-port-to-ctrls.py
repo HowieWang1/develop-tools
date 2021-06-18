@@ -7,7 +7,7 @@ from ctp.uut.uut_config_mapping import UUTConfigMap
 def find_ctrl_serial_mapping(test_name:str)->dict:
     '''
         inputs:  test_name                  : string       : test_name, such as: chassis_generic, rbod_fw,...
-        Raise :  None
+        Raise :  Exception
         return:  ctrl_serial_dict           : dict         : {'uut0': {'ctrlA':{'MC':ttyUSB*, 'SC':ttyUSB*, 'EC':ttyUSB*}},
                                                               'uut1': {'ctrlB':{'MC':ttyUSB*, 'SC':ttyUSB*, 'EC':ttyUSB*}},
                                                                ..........
@@ -24,7 +24,6 @@ def find_ctrl_serial_mapping(test_name:str)->dict:
     UUT_resource_config = UUTConfigMap(UUT_CONFIG_NAME)
     for uut_num in range(MAX_UUT_NUM):
         try:
-        #if True:
             # get MC/SC/EC info
             uut_boj = UUT_resource_config.UUTs[uut_num]
             ctrl_A_obj = uut_boj.enclosures[0].cntrlr_A

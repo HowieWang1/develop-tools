@@ -58,7 +58,7 @@ def execCommand(command, expected=None, retries=0):
 
 
 def send_cmd(device, cmd, expected=None):
-    command = "sudo /usr/local/bin/wbcli {} '{}'".format(device, cmd)
+    command = "sudo /usr/local/bin/wbcli {} -pt:0:127 '{}'".format(device, cmd)
     return execCommand(command, expected)
 
 
@@ -591,8 +591,8 @@ if __name__ == '__main__':
         print("board_id = %s\n" % (board_id,))
         print("%s device = %s\n" % (mode, device))
 
-        header_48, data_48 = vpd_hex_dump(device, 48)
-        header_49, data_49 = vpd_hex_dump(device, 49)
+        header_48, data_48 = vpd_hex_dump(device, 48)                                     # ctrl
+        header_49, data_49 = vpd_hex_dump(device, 49)                                     # ctrl customer
         print_vpd_comparison(VERIFY_LOG, data_48, data_49, headers=[header_49, header_48])
         verify_vpd_48(VERIFY_LOG, device)
         verify_vpd_49(VERIFY_LOG, device, header_49, data_49)
@@ -609,38 +609,38 @@ if __name__ == '__main__':
     send_save_cmd(VERIFY_LOG, device, "ver",    "Battery 2")
     send_save_cmd(VERIFY_LOG, device, "getvpd", "PCM 2")
 
-    header_16, data_16 = vpd_hex_dump(device, 16)
-    header_17, data_17 = vpd_hex_dump(device, 17)
+    header_16, data_16 = vpd_hex_dump(device, 16)                                         # Midplane A
+    header_17, data_17 = vpd_hex_dump(device, 17)                                         # Midplane B
     print_vpd_comparison(VERIFY_LOG, data_16, data_17, headers=[header_17, header_16])
 
     verify_vpd_16(VERIFY_LOG, device)
 
-    header_18, data_18 = vpd_hex_dump(device, 18)
-    header_19, data_19 = vpd_hex_dump(device, 19)
+    header_18, data_18 = vpd_hex_dump(device, 18)                                         # Midplane Customer A
+    header_19, data_19 = vpd_hex_dump(device, 19)                                         # Midplane Customer B
     print_vpd_comparison(VERIFY_LOG, data_18, data_19, headers=[header_19, header_18])
 
     verify_vpd_18(VERIFY_LOG, device, header_19, data_19)
     
 
-    header_40, data_40 = vpd_hex_dump(device, 40)
-    header_41, data_41 = vpd_hex_dump(device, 41)
+    header_40, data_40 = vpd_hex_dump(device, 40)                                         # PCM 1
+    header_41, data_41 = vpd_hex_dump(device, 41)                                         # PCM 2
     print_vpd_comparison(VERIFY_LOG, data_41, data_40, headers=[header_40, header_41])
 
     verify_vpd_pcm(VERIFY_LOG, device)
 
     
-    header_42, data_42 = vpd_hex_dump(device, 42)
-    header_43, data_43 = vpd_hex_dump(device, 43)
+    header_42, data_42 = vpd_hex_dump(device, 42)                                         # PCM 3
+    header_43, data_43 = vpd_hex_dump(device, 43)                                         # PCM 4
     print_vpd_comparison(VERIFY_LOG, data_43, data_42, headers=[header_42, header_43])
 
-    header_60, data_60 = vpd_hex_dump(device, 60)
-    header_61, data_61 = vpd_hex_dump(device, 61)
+    header_60, data_60 = vpd_hex_dump(device, 60)                                         # PCM 1 Customer
+    header_61, data_61 = vpd_hex_dump(device, 61)                                         # PCM 2 Customer
     print_vpd_comparison(VERIFY_LOG, data_61, data_60, headers=[header_60, header_61])
 
     verify_vpd_pcm_custom(VERIFY_LOG, device, header_60, data_60, header_61, data_61)
 
-    header_62, data_62 = vpd_hex_dump(device, 62)
-    header_63, data_63 = vpd_hex_dump(device, 63)
+    header_62, data_62 = vpd_hex_dump(device, 62)                                         # PCM 3 Customer
+    header_63, data_63 = vpd_hex_dump(device, 63)                                         # PCM 4 Customer
     print_vpd_comparison(VERIFY_LOG, data_63, data_62, headers=[header_62, header_63])
     
 

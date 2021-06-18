@@ -2,7 +2,8 @@
 This dir contains the tools developed by me during my stay in seagate.
 
 Details:
-Power:
+# Power:
+![image](https://user-images.githubusercontent.com/41529162/122524051-46dd5600-d04a-11eb-8282-0a168022030d.png)
 
 # found_drives:
      will show the drive relationship in the 2U/4U chassis.

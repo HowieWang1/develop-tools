@@ -24,29 +24,47 @@ def find_ctrl_serial_mapping(test_name:str)->dict:
     UUT_resource_config = UUTConfigMap(UUT_CONFIG_NAME)
     for uut_num in range(MAX_UUT_NUM):
         try:
+        #if True:
+            # get MC/SC/EC info
             uut_boj = UUT_resource_config.UUTs[uut_num]
-            if 'jbod' in UUT_CONFIG_NAME:
-                uut_info = {f'uut{uut_num}': {'ctrlA':{'MC':uut_boj.enclosures[0].cntrlr_A.MC, 'SC':uut_boj.enclosures[0].cntrlr_A.SC},
-                                              'ctrlB':{'MC':uut_boj.enclosures[0].cntrlr_B.MC, 'SC':uut_boj.enclosures[0].cntrlr_B.SC}
+            ctrl_A_obj = uut_boj.enclosures[0].cntrlr_A
+            ctrl_B_obj = uut_boj.enclosures[0].cntrlr_B
+            if 'rbod' in UUT_CONFIG_NAME:
+                uut_info = {f'uut{uut_num}': {'ctrlA':{'MC':ctrl_A_obj.MC, 'SC':ctrl_A_obj.SC},
+                                              'ctrlB':{'MC':ctrl_B_obj.MC, 'SC':ctrl_B_obj.SC}
                                              }
                            }
-            elif 'rbod' in UUT_CONFIG_NAME:
-                uut_info = {f'uut{uut_num}': {'ctrlA':{'EC':uut_boj.enclosures[0].cntrlr_A.EC}, 
-                                              'ctrlB':{'EC':uut_boj.enclosures[0].cntrlr_B.EC}
+            elif 'jbod' in UUT_CONFIG_NAME:
+                uut_info = {f'uut{uut_num}': {'ctrlA':{'EC':ctrl_A_obj.EC}, 
+                                              'ctrlB':{'EC':ctrl_B_obj.EC}
                                              }
                            }
             elif 'chassis_generic' in UUT_CONFIG_NAME:
-                uut_info = {f'uut{uut_num}': {'ctrlA':{'EC':uut_boj.enclosures[0].cntrlr_A.EC, 'MC':uut_boj.enclosures[0].cntrlr_A.MC, 'SC':uut_boj.enclosures[0].cntrlr_A.SC},
-                                              'ctrlB':{'EC':uut_boj.enclosures[0].cntrlr_B.EC, 'MC':uut_boj.enclosures[0].cntrlr_B.MC, 'SC':uut_boj.enclosures[0].cntrlr_B.SC}
-                                             }                 
+                uut_info = {f'uut{uut_num}': {'ctrlA':{'EC':ctrl_A_obj.EC, 'MC':ctrl_A_obj.MC, 'SC':ctrl_A_obj.SC},
+                                              'ctrlB':{'EC':ctrl_B_obj.EC, 'MC':ctrl_B_obj.MC, 'SC':ctrl_B_obj.SC}
+                                             }
                            }
             else: 
                 raise Exception
+            
+            # get /dev/sg* info
+            ses_device_A = ctrl_A_obj.get_ses_devices()
+            ses_device_B = ctrl_B_obj.get_ses_devices()
+            encl_num = None
+            for ses_device_list in [ses_device_A, ses_device_B]:
+                for encl in ses_device_list:
+                    if len(encl):
+                        encl_num = encl[0]
+                        if ses_device_list == ses_device_A:
+                            uut_info[f'uut{uut_num}']['ctrlA'].update({'dev_num':encl_num})
+                        else:
+                            uut_info[f'uut{uut_num}']['ctrlB'].update({'dev_num':encl_num})
             ctrl_serial_dict.update(uut_info)
         except Exception:
             print("only found {} uut configuration info in {}".format(uut_num, UUT_CONFIG_NAME))
             break
     return ctrl_serial_dict
+
 
 
 if __name__ == "__main__":

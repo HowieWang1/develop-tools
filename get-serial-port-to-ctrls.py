@@ -56,9 +56,9 @@ def find_ctrl_serial_mapping(test_name:str)->dict:
                     if len(encl):
                         encl_num = encl[0]
                         if ses_device_list == ses_device_A:
-                            uut_info[f'uut{uut_num}']['ctrlA'].update({'dev_num':encl_num})
+                            uut_info[f'uut{uut_num}']['ctrlA'].update({'dev_num':'/dev/' + encl_num})
                         else:
-                            uut_info[f'uut{uut_num}']['ctrlB'].update({'dev_num':encl_num})
+                            uut_info[f'uut{uut_num}']['ctrlB'].update({'dev_num':'/dev/' + encl_num})
             ctrl_serial_dict.update(uut_info)
         except Exception:
             print("only found {} uut configuration info in {}".format(uut_num, UUT_CONFIG_NAME))

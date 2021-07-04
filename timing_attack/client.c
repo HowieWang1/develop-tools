@@ -67,17 +67,17 @@ void str_cli(FILE *fp,uint32 sockfd)
     for(;;)
     {
         //if(stdineof == 0)
-        FD_SET(fileno(fp),&rset);
-        FD_SET(sockfd,&rset);
+        FD_SET(fileno(fp),&rset);      // add file io into fd set
+        FD_SET(sockfd,&rset);          // add socket io into fd set
         maxfdp1 = max(fileno(fp),sockfd)+1;
-        nready = select(maxfdp1,&rset,NULL,NULL,NULL);
+        nready = select(maxfdp1,&rset,NULL,NULL,NULL);   // blocked to maxfdp1 is ready for read.
         
         if(nready < 0)
         {
             ERR_EXIT("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         
-        if(FD_ISSET(sockfd,&rset))
+        if(FD_ISSET(sockfd,&rset))     // is the bit for sockfd on in fd set?
         {
             memset(buf,0,MAXLINE);
             if((n = read(sockfd,buf,MAXLINE))==0)

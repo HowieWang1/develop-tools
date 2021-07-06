@@ -8,7 +8,7 @@
 ![image](https://github.com/HowieWang1/develop-tools/blob/develop/face_mast_detection/show_frame_without_mask.png)
 
 ## BYW
-if you want the datebase, or the model which has been trained successfully, pls refer to
+if you want get the datebase, or the model which has been trained successfully, pls refer to
 
 链接：https://pan.baidu.com/s/1qFb-tIg0OMjL84ef86fCsw 
 提取码：zzzz

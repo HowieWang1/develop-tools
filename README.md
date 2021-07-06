@@ -1,5 +1,5 @@
 ## myown-tools
-This dir contains the tools developed by me during my stay in seagate.
+The python_tools dir contains the tools developed by me during my stay in seagate.
 
 Details:
 # Power:
